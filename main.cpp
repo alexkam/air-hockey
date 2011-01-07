@@ -18,15 +18,20 @@ SDL_Surface *batB;
 SDL_Surface *ball;
 SDL_Surface *screen;
 
+SDL_Surface *digit[6];
 
-int xpos=620, ypos=1;
-int xpos1=2, ypos1=2;
+int VG= 50;
+int xpos=620, ypos=VG;
+int xpos1=2, ypos1=VG;
 int xpos2=300, ypos2= 50;
 
+int Win;
+int Win1= 0;
+int Win2= 0;
 
  bool redraw= false;
  bool CloseThread= false;
- //bool NewGame= false;
+ bool NewGame= false;
 
 DWORD WINAPI GoBall (LPVOID pParam)
 {
@@ -51,6 +56,8 @@ DWORD WINAPI GoBall (LPVOID pParam)
         {
             if (!((ypos2>=ypos1-12)&&(ypos2<=ypos1+85-12)))
             {
+                Win= 1;
+                Win2++;
                 NewGame= true;
                 break;
             }
@@ -61,6 +68,9 @@ DWORD WINAPI GoBall (LPVOID pParam)
         {
             if (!((ypos2>=ypos-12)&&(ypos2<=ypos+85-12)))
             {
+
+                Win= 2;
+                Win1++;
                 NewGame= true;
                 break;
 
@@ -68,11 +78,10 @@ DWORD WINAPI GoBall (LPVOID pParam)
 
             VX= -1*VX;
         }
-        if (ypos2<=1)
+        if (ypos2<=VG)
             VY= -1*VY;
         if (ypos2>=480-25)
             VY= -1*VY;
-
 
     }
 
@@ -105,6 +114,7 @@ int main(int argc, char *argv[]){
  InitImages();
  InitGame();
 
+
 CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
 
 DrawScene();
@@ -123,12 +133,21 @@ DrawScene();
      }
    }
 
+    if (NewGame)
+    {
+        bool t= false;
+
+            InitGame();
+            CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+
+    }
+
 
    keys = SDL_GetKeyState(NULL);
 
    if(keys[SDLK_UP])
    {
-       if (ypos-4>=1)
+       if (ypos-4>=VG)
         ypos -= 4;
    }
    if(keys[SDLK_DOWN])
@@ -140,7 +159,7 @@ DrawScene();
 
    if(keys[SDLK_w])
    {
-       if (ypos1-4>=1)
+       if (ypos1-4>=VG)
         ypos1 -= 4;
    }
 
@@ -170,12 +189,18 @@ void InitImages(){
  batA=SDL_LoadBMP("image.bmp");
  batB=SDL_LoadBMP("image1.bmp");
  ball=SDL_LoadBMP("image2.bmp");
+ digit[0]= SDL_LoadBMP("0.bmp");
+ digit[1]= SDL_LoadBMP("1.bmp");
+ digit[2]= SDL_LoadBMP("2.bmp");
+ digit[3]= SDL_LoadBMP("3.bmp");
+ digit[4]= SDL_LoadBMP("4.bmp");
+ digit[5]= SDL_LoadBMP("5.bmp");
 
 }
 
 
-
 /* ------------------------------------------- */
+
 void DrawIMG(SDL_Surface *img, int x, int y){
 
  SDL_Rect dest;
@@ -205,16 +230,7 @@ void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy){
 }
 
 
-/* ------------------------------------------- */
 
-
-void DrawBG(){
-
- DrawIMG(back, 0, 0);
-
-}
-
-/* ------------------------------------------- */
 void DrawScene(){
 
  redraw= true;
@@ -225,7 +241,9 @@ void DrawScene(){
  DrawIMG(batB, xpos , ypos );
  DrawIMG(ball, xpos2 , ypos2);
  for(int i=0; i<640; i++)
-    DrawPixel(screen, i, 1, 0, 0, 0);
+    DrawPixel(screen, i, VG, 0, 0, 0);
+  DrawIMG(digit[Win1], 20 , 10);
+  DrawIMG(digit[Win2], 600 , 10);
 
  SDL_Flip(screen);
 
@@ -244,5 +262,14 @@ void DrawPixel(SDL_Surface *screen, int x, int y,Uint8 R, Uint8 G, Uint8 B)
 
 void InitGame(void)
 {
-
+    VG= 50;
+    xpos=620;
+    ypos=VG;
+    xpos1=2;
+    ypos1=VG;
+    xpos2=50;
+    ypos2= rand()%400+50;
+    redraw= false;
+    CloseThread= false;
+    NewGame= false;
 }

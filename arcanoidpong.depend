@@ -15,14 +15,7 @@
 	<SDL/SDL.h>
 	<windows.h>
 
-1294397310 source:c:\users\lizard\arcanoidpong\main.cpp
-	<stdio.h>
-	<stdlib.h>
-	<time.h>
-	<SDL/SDL.h>
-	<windows.h>
-
-1294411578 source:c:\users\lizard\1\main.cpp
+1294416506 source:c:\users\lizard\arcanoidpong\main.cpp
 	<stdio.h>
 	<SDL/SDL.h>
 	<windows.h>
