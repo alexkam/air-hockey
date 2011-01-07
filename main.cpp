@@ -23,8 +23,8 @@ SDL_Surface *screen;
 SDL_Surface *digit[6];
 
 int VG= 50;
-int xpos=620, ypos=VG;
-int xpos1=2, ypos1=VG;
+int xpos=626, ypos=220;
+int xpos1=2, ypos1=220;
 int xpos2=300, ypos2= 50;
 
 int Win;
@@ -316,10 +316,10 @@ void InitGame(void)
     }
 
     VG= 50;
-    xpos=620;
-    ypos=VG;
+    xpos=626;
+    ypos=220;
     xpos1=2;
-    ypos1=VG;
+    ypos1=220;
     xpos2=50;
     ypos2= rand()%400+50;
     Win= 0;
