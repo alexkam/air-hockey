@@ -1,7 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+//#include <time.h>
 #include <SDL/SDL.h>
 #include <windows.h>
+#include "SDL_mixer.h"
 
+Mix_Music *music;
+Mix_Chunk *shot;
+Mix_Chunk *explode;
 
 void DrawPixel(SDL_Surface *screen, int x, int y,Uint8 R, Uint8 G, Uint8 B);
 void InitImages(void);
@@ -37,7 +43,8 @@ DWORD WINAPI GoBall (LPVOID pParam)
 {
     int VX, VY;
     VX= 2;
-    VY= 3;
+    VY= 3
+    ;
 
 
     while (true)
@@ -56,8 +63,11 @@ DWORD WINAPI GoBall (LPVOID pParam)
         {
             if (!((ypos2>=ypos1-12)&&(ypos2<=ypos1+85-12)))
             {
+                //MessageBoxA(NULL, "HAHA", "RIGTH WINS", MB_OK);
                 Win= 1;
                 Win2++;
+                Mix_PlayChannel(1,explode,0);
+
                 NewGame= true;
                 break;
             }
@@ -68,13 +78,20 @@ DWORD WINAPI GoBall (LPVOID pParam)
         {
             if (!((ypos2>=ypos-12)&&(ypos2<=ypos+85-12)))
             {
-
+                //MessageBoxA(NULL, "HAHA", "LEFT WINS", MB_OK);
                 Win= 2;
                 Win1++;
+                Mix_PlayChannel(1,explode,0);
+
                 NewGame= true;
                 break;
 
             }
+            if(!Mix_PlayingMusic())
+    {
+      Mix_PlayMusic(music, 0);
+    }
+
 
             VX= -1*VX;
         }
@@ -83,6 +100,17 @@ DWORD WINAPI GoBall (LPVOID pParam)
         if (ypos2>=480-25)
             VY= -1*VY;
 
+        //Win1++;
+        if (Win1==5 || Win2==5)
+            Win1=Win2= 0;
+
+        /*while (redraw)
+        {
+
+        }*/
+
+        //DrawScene();
+        //MessageBoxA(NULL, "fes11111", "fdsf1111", MB_OK);
     }
 
     return 0;
@@ -94,6 +122,7 @@ int main(int argc, char *argv[]){
  Uint8* keys;
  char mes[100];
 
+//srand(time(0));
 
  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 ){
    printf("Unable to init SDL: %s\n", SDL_GetError());
@@ -102,9 +131,19 @@ int main(int argc, char *argv[]){
 
  atexit(SDL_Quit);
 
- SDL_WM_SetCaption("arcanoid","arcanoid");
+if(Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 2048) < 0)
+  {
+    printf("Warning: Couldn't set 44100 Hz 16-bit audio\n- Reason: %s\n",
+							SDL_GetError());
+  }
+    music = Mix_LoadMUS("data/sound/(sblu)moon6.xm");
+
+
+
+ SDL_WM_SetCaption("RDpro","RDpro");
  SDL_WM_SetIcon(SDL_LoadBMP("icon.bmp"), NULL);
 
+ //screen=SDL_SetVideoMode(640,480,32,SDL_HWSURFACE|SDL_DOUBLEBUF);
  screen = SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE);
  if ( screen == NULL ){
    printf("Unable to set 640x480 video: %s\n", SDL_GetError());
@@ -113,7 +152,7 @@ int main(int argc, char *argv[]){
 
  InitImages();
  InitGame();
-
+ //DrawBG();
 
 CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
 
@@ -136,9 +175,28 @@ DrawScene();
     if (NewGame)
     {
         bool t= false;
-
+        if ((Win1!=5)&&(Win2!=5))
+        {
             InitGame();
             CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+        }
+        if (Win1==5)
+        {
+            strcpy(mes, "The first one wins!\nDo you want to play again?");
+            t= true;
+        } else
+        if (Win2==5)
+        {
+            strcpy(mes, "The second one wins!\nDo you want to play again?");
+            t=true;
+        }
+        if (t)
+        if (MessageBoxA(NULL, mes, "Game Over", MB_YESNO)==IDYES)
+        {
+            InitGame();
+            CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+        } else
+            break;
 
     }
 
@@ -180,6 +238,19 @@ DrawScene();
 SDL_Quit();
  return 0;
 
+
+  Mix_FadeOutChannel(-1, 1000);
+
+  Mix_FadeOutMusic(1000);
+
+  SDL_Delay(1000);
+
+  Mix_FreeMusic(music);
+  Mix_FreeChunk(shot);
+  Mix_FreeChunk(explode);
+
+  return 0;
+
 }
 
 /* ------------------------------------------- */
@@ -196,11 +267,13 @@ void InitImages(){
  digit[4]= SDL_LoadBMP("4.bmp");
  digit[5]= SDL_LoadBMP("5.bmp");
 
+
+
 }
 
 
-/* ------------------------------------------- */
 
+/* ------------------------------------------- */
 void DrawIMG(SDL_Surface *img, int x, int y){
 
  SDL_Rect dest;
@@ -228,11 +301,23 @@ void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy){
  SDL_BlitSurface(img, &src, screen, &dest);
 
 }
+/* ------------------------------------------- */
 
 
+/* ------------------------------------------- */
 
+/* ------------------------------------------- */
+void DrawBG(){
+
+ DrawIMG(back, 0, 0);
+
+}
+
+/* ------------------------------------------- */
 void DrawScene(){
 
+ //DrawIMG(back, xpos -2, ypos-2, 132, 132, xpos-2, ypos-2 );
+ //DrawIMG(back, xpos1 -2, ypos1-2, 132, 132, xpos1-2, ypos1-2 );
  redraw= true;
 
 
@@ -269,7 +354,16 @@ void InitGame(void)
     ypos1=VG;
     xpos2=50;
     ypos2= rand()%400+50;
+    Win= 0;
     redraw= false;
     CloseThread= false;
     NewGame= false;
+    //Win1= 0;
+    //Win2= 0;
 }
+
+
+
+
+
+
