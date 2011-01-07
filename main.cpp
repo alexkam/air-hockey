@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <SDL/SDL.h>
 #include <windows.h>
 
@@ -49,13 +51,14 @@ DWORD WINAPI GoBall (LPVOID pParam)
             break;
         }
 
-        Sleep(7);
+        Sleep(10);
         xpos2+= VX;
         ypos2+= VY;
         if (xpos2<=xpos1+14)
         {
             if (!((ypos2>=ypos1-12)&&(ypos2<=ypos1+85-12)))
             {
+                MessageBoxA(NULL, "HAHA", "RIGTH WINS", MB_OK);
                 Win= 1;
                 Win2++;
                 NewGame= true;
@@ -68,7 +71,7 @@ DWORD WINAPI GoBall (LPVOID pParam)
         {
             if (!((ypos2>=ypos-12)&&(ypos2<=ypos+85-12)))
             {
-
+                MessageBoxA(NULL, "HAHA", "LEFT WINS", MB_OK);
                 Win= 2;
                 Win1++;
                 NewGame= true;
@@ -83,6 +86,11 @@ DWORD WINAPI GoBall (LPVOID pParam)
         if (ypos2>=480-25)
             VY= -1*VY;
 
+
+        if (Win1==5 || Win2==5)
+            Win1=Win2= 0;
+
+
     }
 
     return 0;
@@ -94,6 +102,7 @@ int main(int argc, char *argv[]){
  Uint8* keys;
  char mes[100];
 
+srand(time(0));
 
  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 ){
    printf("Unable to init SDL: %s\n", SDL_GetError());
@@ -136,9 +145,28 @@ DrawScene();
     if (NewGame)
     {
         bool t= false;
-
+        if ((Win1!=5)&&(Win2!=5))
+        {
             InitGame();
             CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+        }
+        if (Win1==5)
+        {
+            strcpy(mes, "The first one wins!\nDo you want to play again?");
+            t= true;
+        } else
+        if (Win2==5)
+        {
+            strcpy(mes, "The second one wins!\nDo you want to play again?");
+            t= true;
+        }
+        if (t)
+        if (MessageBoxA(NULL, mes, "Game Over", MB_YESNO)==IDYES)
+        {
+            InitGame();
+            CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+        } else
+            break;
 
     }
 
@@ -199,8 +227,8 @@ void InitImages(){
 }
 
 
-/* ------------------------------------------- */
 
+/* ------------------------------------------- */
 void DrawIMG(SDL_Surface *img, int x, int y){
 
  SDL_Rect dest;
@@ -228,10 +256,21 @@ void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy){
  SDL_BlitSurface(img, &src, screen, &dest);
 
 }
+/* ------------------------------------------- */
 
 
+/* ------------------------------------------- */
 
+/* ------------------------------------------- */
+void DrawBG(){
+
+ DrawIMG(back, 0, 0);
+
+}
+
+/* ------------------------------------------- */
 void DrawScene(){
+
 
  redraw= true;
 
@@ -272,4 +311,5 @@ void InitGame(void)
     redraw= false;
     CloseThread= false;
     NewGame= false;
+
 }
