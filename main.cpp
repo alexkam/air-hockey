@@ -1,23 +1,90 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <SDL/SDL.h>
+#include <windows.h>
 
+
+void DrawPixel(SDL_Surface *screen, int x, int y,Uint8 R, Uint8 G, Uint8 B);
 void InitImages(void);
 void DrawIMG(SDL_Surface *img, int x, int y);
 void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy);
 void DrawBG(void);
 void DrawScene(void);
+void InitGame(void);
+
 
 SDL_Surface *back;
-SDL_Surface *image;
+SDL_Surface *batA;
+SDL_Surface *batB;
+SDL_Surface *ball;
 SDL_Surface *screen;
 
-int xpos=0, ypos=0;
+
+int xpos=620, ypos=1;
+int xpos1=2, ypos1=2;
+int xpos2=300, ypos2= 50;
+
+
+ bool redraw= false;
+ bool CloseThread= false;
+ //bool NewGame= false;
+
+DWORD WINAPI GoBall (LPVOID pParam)
+{
+    int VX, VY;
+    VX= 2;
+    VY= 3;
+
+
+    while (true)
+    {
+        if (CloseThread)
+        {
+
+            MessageBoxA(NULL, "fes", "fdsf", MB_OK);
+            break;
+        }
+
+        Sleep(7);
+        xpos2+= VX;
+        ypos2+= VY;
+        if (xpos2<=xpos1+14)
+        {
+            if (!((ypos2>=ypos1-12)&&(ypos2<=ypos1+85-12)))
+            {
+                NewGame= true;
+                break;
+            }
+
+            VX= -1*VX;
+        }
+        if (xpos2>=xpos-25)
+        {
+            if (!((ypos2>=ypos-12)&&(ypos2<=ypos+85-12)))
+            {
+                NewGame= true;
+                break;
+
+            }
+
+            VX= -1*VX;
+        }
+        if (ypos2<=1)
+            VY= -1*VY;
+        if (ypos2>=480-25)
+            VY= -1*VY;
+
+
+    }
+
+    return 0;
+}
 
 /* ------------------------------------------- */
 int main(int argc, char *argv[]){
 
  Uint8* keys;
+ char mes[100];
+
 
  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 ){
    printf("Unable to init SDL: %s\n", SDL_GetError());
@@ -26,39 +93,72 @@ int main(int argc, char *argv[]){
 
  atexit(SDL_Quit);
 
- SDL_WM_SetCaption("arcanoid+pong","arcanoid+pong");
+ SDL_WM_SetCaption("arcanoid","arcanoid");
  SDL_WM_SetIcon(SDL_LoadBMP("icon.bmp"), NULL);
 
- screen=SDL_SetVideoMode(640,480,32,SDL_HWSURFACE|SDL_DOUBLEBUF);
+ screen = SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE);
  if ( screen == NULL ){
    printf("Unable to set 640x480 video: %s\n", SDL_GetError());
    exit(1);
  }
 
  InitImages();
- DrawBG();
+ InitGame();
 
+CreateThread(NULL, 0, GoBall , (LPVOID)0, NULL, NULL);
+
+DrawScene();
  int done=0;
- while(done == 0){
+ while(done == 0)
+ {
 
    SDL_Event event;
 
-   while ( SDL_PollEvent(&event) ){
+   while ( SDL_PollEvent(&event) )
+   {
      if ( event.type == SDL_QUIT ){ done = 1; }
-     if ( event.type == SDL_KEYDOWN ){
+     if ( event.type == SDL_KEYDOWN )
+     {
        if ( event.key.keysym.sym == SDLK_ESCAPE ){ done = 1; }
      }
    }
 
+
    keys = SDL_GetKeyState(NULL);
-   if(keys[SDLK_UP]){ ypos -= 1; }
-   if(keys[SDLK_DOWN]){ ypos += 1; }
-   if(keys[SDLK_LEFT]){ xpos -= 1; }
-   if(keys[SDLK_RIGHT]){ xpos += 1; }
 
-   DrawScene();
+   if(keys[SDLK_UP])
+   {
+       if (ypos-4>=1)
+        ypos -= 4;
+   }
+   if(keys[SDLK_DOWN])
+   {
+       if (ypos+4<=480-85)
+        ypos += 4;
+   }
+
+
+   if(keys[SDLK_w])
+   {
+       if (ypos1-4>=1)
+        ypos1 -= 4;
+   }
+
+    if(keys[SDLK_s])
+    {
+        if (ypos1+4<=480-85)
+         ypos1 += 4;
+    }
+
+
+    while (redraw)
+    {
+
+    }
+    DrawScene();
  }
-
+ CloseThread= true;
+SDL_Quit();
  return 0;
 
 }
@@ -67,9 +167,13 @@ int main(int argc, char *argv[]){
 void InitImages(){
 
  back=SDL_LoadBMP("bg.bmp");
- image=SDL_LoadBMP("image.bmp");
+ batA=SDL_LoadBMP("image.bmp");
+ batB=SDL_LoadBMP("image1.bmp");
+ ball=SDL_LoadBMP("image2.bmp");
 
 }
+
+
 
 /* ------------------------------------------- */
 void DrawIMG(SDL_Surface *img, int x, int y){
@@ -85,6 +189,7 @@ void DrawIMG(SDL_Surface *img, int x, int y){
 /* ------------------------------------------- */
 void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy){
 
+ int a=0;
  SDL_Rect dest;
  dest.x = x;
  dest.y = y;
@@ -99,7 +204,10 @@ void DrawIMG(SDL_Surface *img, int x, int y, int w, int h, int sx, int sy){
 
 }
 
+
 /* ------------------------------------------- */
+
+
 void DrawBG(){
 
  DrawIMG(back, 0, 0);
@@ -109,12 +217,32 @@ void DrawBG(){
 /* ------------------------------------------- */
 void DrawScene(){
 
- DrawIMG(back, xpos-2, ypos-2, 132, 132, xpos-2, ypos-2);
- DrawIMG(image, xpos, ypos);
+ redraw= true;
+
+
+ DrawIMG(back, 0, 0);
+ DrawIMG(batA, xpos1 , ypos1);
+ DrawIMG(batB, xpos , ypos );
+ DrawIMG(ball, xpos2 , ypos2);
+ for(int i=0; i<640; i++)
+    DrawPixel(screen, i, 1, 0, 0, 0);
 
  SDL_Flip(screen);
 
+ redraw= false;
+
 }
 
-/* ------------------------------------------- */
-/* ------------------------------------------- */
+void DrawPixel(SDL_Surface *screen, int x, int y,Uint8 R, Uint8 G, Uint8 B)
+{
+    Uint32 *p;
+    Uint32 color = SDL_MapRGB(screen->format, R, G, B);
+    p = (Uint32 *)screen->pixels + y * screen->pitch/4 + x;
+    *p=color;
+
+}
+
+void InitGame(void)
+{
+
+}
