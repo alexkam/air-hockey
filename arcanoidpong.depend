@@ -22,3 +22,10 @@
 	<SDL/SDL.h>
 	<windows.h>
 
+1294432021 source:d:\903\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<SDL/SDL.h>
+	<windows.h>
+	"SDL_mixer.h"
+
