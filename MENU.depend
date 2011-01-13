@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1294935254 source:c:\program files\programs\menu\main.c
+	<stdlib.h>
+	<stdio.h>
+	<SDL.h>
+	<SDL_image.h>
+	<SDL_ttf.h>
+	<SDL_mixer.h>
+	<string.h>
+
